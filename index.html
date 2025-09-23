@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <title>Manual Transactions Manager for Cyber Zone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#0e1322; --bg2:#0a0f1c;
+      --surface:#111827; --surface-2:#0f1628;
+      --text:#e5e7eb; --muted:#98a2b3;
+      --border:#1f2a3a;
+
+      --primary:#60a5fa; --primary-600:#3b82f6;
+      --accent:#a78bfa;
+
+      --success:#22c55e; --error:#ef4444; --warning:#f59e0b;
+      --pill-deposit:#10b981; --pill-withdrawal:#ef4444; --pill-atm:#8b5cf6;
+      --link:#93c5fd;
+
+      --input-bg:rgba(255,255,255,0.06); --input-border:#314055;
+
+      --elev-1: 0 18px 40px rgba(0,0,0,.32), 0 12px 24px rgba(0,0,0,.22);
+      --elev-2: 0 28px 70px rgba(0,0,0,.45), 0 18px 36px rgba(0,0,0,.30);
+
+      --radius:14px; --radius-sm:10px;
+      --ring: 0 0 0 3px rgba(59,130,246,.25);
+    }
+    html[data-theme="light"]{
+      --bg1:#f7f9fc; --bg2:#eef2f7;
+      --surface:#ffffff; --surface-2:#f9fbff;
+      --text:#0f172a; --muted:#667085;
+      --border:#e5e7eb;
+
+      --primary:#2563eb; --primary-600:#1d4ed8; --accent:#7c3aed;
+      --link:#2563eb;
+      --input-bg:#ffffff; --input-border:#d1d5db;
+
+      --elev-1: 0 16px 36px rgba(2,6,23,.12), 0 10px 24px rgba(2,6,23,.08);
+      --elev-2: 0 36px 90px rgba(2,6,23,.16), 0 20px 36px rgba(2,6,23,.10);
+
+      --ring: 0 0 0 3px rgba(37,99,235,.25);
+    }
+
+    :root { color-scheme: dark; }
+    html[data-theme="light"] { color-scheme: light; }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(800px 400px at 20% -10%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(167,139,250,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .app{ max-width:1200px; margin:0 auto; padding:22px 14px 96px; }
+
+    /* HERO CARD (with subtle glow on hover) */
+    .hero-card{
+      position: relative;
+      background: linear-gradient(145deg, var(--surface), var(--surface-2));
+      border:1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      padding: 16px;
+      box-shadow: var(--elev-2);
+      margin-bottom: 18px;
+      overflow: hidden;
+
+      transition: transform .25s ease, box-shadow .35s ease, filter .35s ease;
+      will-change: transform, box-shadow, filter;
+    }
+    .hero-card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(400px 180px at 5% -10%, rgba(96,165,250,.18), transparent 55%),
+                  radial-gradient(360px 180px at 120% 0%, rgba(167,139,250,.15), transparent 50%);
+      pointer-events:none;
+      opacity: .55;
+      transition: opacity .35s ease, filter .35s ease;
+    }
+    .hero-card::after{
+      content:"";
+      position:absolute; inset:0;
+      border-radius: inherit;
+      pointer-events:none;
+      box-shadow:
+        0 0 0 1px rgba(148,163,184,.12),
+        0 0 28px rgba(96,165,250,.16),
+        0 0 34px rgba(167,139,250,.14);
+      opacity: 0;
+      transition: opacity .35s ease;
+    }
+    .hero-card:hover{
+      transform: translateY(-3px);
+      box-shadow:
+        var(--elev-2),
+        0 14px 45px rgba(59,130,246,.28),
+        0 12px 28px rgba(167,139,250,.20);
+    }
+    .hero-card:hover::before{ opacity: .9; filter: saturate(1.15) blur(0.4px); }
+    .hero-card:hover::after{ opacity: 1; }
+
+    .hero-inner{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .logo{
+      width:48px; height:48px; border-radius:12px;
+      background:linear-gradient(135deg, var(--primary-600), var(--accent));
+      display:grid; place-items:center; position:relative; overflow:hidden;
+      box-shadow: var(--elev-1);
+    }
+    .logo::after{
+      content:""; position:absolute; inset:-1px;
+      background: radial-gradient(200px 120px at 30% 20%, rgba(255,255,255,.22), transparent 45%);
+      mix-blend-mode: screen;
+    }
+    .logo svg{ width:22px; height:22px; color:#fff; opacity:.95; }
+    .titles h1{ margin:0; font-size:20px; font-weight:800; letter-spacing:.2px; }
+    .titles p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
+
+    .icon-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:var(--radius-sm);
+      background:var(--surface); border:1px solid var(--border);
+      color:var(--text); cursor:pointer; box-shadow: var(--elev-1);
+      font-weight:700; transition:.15s ease;
+    }
+    .icon-btn:hover{ transform:translateY(-1px); }
+    .icon{ width:18px; height:18px; color:currentColor; }
+
+    /* GRID: wider Add, narrower Filter */
+    .grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+    @media(min-width:980px){
+      .grid{
+        grid-template-columns: minmax(560px, 2fr) minmax(260px, 1fr);
+        align-items: start;
+      }
+    }
+
+    /* CARDS */
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--elev-1);
+      padding:14px;
+      transition: transform .15s ease, box-shadow .15s ease;
+      will-change: transform;
+    }
+    .card:hover{ transform: translateY(-2px); }
+    .card h3{ margin:0 0 10px; font-size:16px; font-weight:800; }
+
+    /* FORMS */
+    .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:560px){ .form-row{ grid-template-columns:1fr; } }
+    label{ display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; }
+    input, select{
+      width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--input-border);
+      background:var(--input-bg); color:var(--text); font-size:14px; outline:none; transition:.2s;
+    }
+    input::placeholder{ color:rgba(148,163,184,.75); }
+    input:focus, select:focus{ border-color:var(--primary-600); box-shadow:var(--ring); }
+    input.invalid{ border-color:var(--error)!important; box-shadow:0 0 0 3px rgba(239,68,68,.18)!important; }
+    .file{ padding:10px; border:1px dashed var(--input-border); border-radius:10px; background:var(--surface-2); }
+    .help{ margin-top:6px; font-size:12px; color:var(--muted); }
+    .error{ display:none; margin-top:6px; font-size:12px; color:var(--error); }
+    .error.show{ display:block; }
+
+    /* BUTTONS */
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid transparent;
+      background:linear-gradient(135deg, var(--primary-600), var(--primary)); color:#fff; font-weight:800;
+      box-shadow: var(--elev-1); cursor:pointer; transition:.15s ease;
+    }
+    .btn:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+    .btn.secondary{ background:linear-gradient(135deg, #22c1c3, #0ea5e9); }
+    .btn.warn{ background:linear-gradient(135deg, #f59e0b, #ef4444); }
+    .btn.ghost{ background:transparent; color:var(--text); border-color:var(--border); }
+
+    /* FILTERS */
+    .filters{ display:grid; gap:10px; }
+    .inline{ display:flex; gap:8px; flex-wrap:wrap; }
+    .hidden{ display:none !important; }
+
+    /* Download buttons row */
+    .action-row{ display:flex; gap:8px; flex-wrap:wrap; }
+    @media(max-width:560px){ .action-row{ flex-direction:column; } }
+
+    /* TABLE */
+    .table-wrap{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--elev-1);
+      padding:0;
+    }
+    .table-scroll{ overflow-x:auto; width:100%; }
+    table{ width:100%; border-collapse:collapse; min-width:880px; }
+    thead th{
+      background:var(--surface-2); color:var(--muted); text-align:left; font-size:12px; padding:12px; border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:1;
+    }
+    tbody td{ padding:12px; border-bottom:1px solid var(--border); font-size:14px; }
+    tbody tr:hover{ background:rgba(148,163,184,.08); }
+    .pill{ display:inline-block; padding:4px 10px; border-radius:999px; color:#fff; font-weight:700; font-size:12px; }
+    .pill.deposit{ background:var(--pill-deposit); }
+    .pill.withdrawal{ background:var(--pill-withdrawal); }
+    .pill.atm{ background:var(--pill-atm); }
+    .tbl-actions{ display:flex; gap:6px; }
+    .icon-btn.small{ padding:6px 8px; }
+
+    /* MODAL */
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:30; }
+    .modal{
+      width:min(560px, 94vw); background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow: var(--elev-2); padding:14px;
+    }
+    .modal h4{ margin:0 0 10px; font-size:16px; font-weight:800; }
+    .modal-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+    /* FOOTER */
+    footer{
+      position:fixed; left:0; right:0; bottom:0;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      background:var(--surface); border-top:1px solid var(--border);
+      color:var(--muted); padding:10px 12px; font-size:13px; box-shadow: var(--elev-1); z-index:40;
+    }
+
+    /* DARK DROPDOWN FIX */
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] textarea{ background-color:var(--input-bg); color:var(--text); border-color:var(--input-border); }
+    html[data-theme="dark"] select option,
+    html[data-theme="dark"] select optgroup{ background-color:#0f172a; color:#e5e7eb; }
+    html[data-theme="dark"] select option:checked{ background-color:#1d4ed8; color:#fff; }
+    html[data-theme="dark"] select option:disabled{ color:#94a3b8; }
+
+    /* ACCESSIBILITY */
+    @media (prefers-reduced-motion: reduce){
+      .hero-card, .hero-card::before, .hero-card::after,
+      .card, .btn, .icon-btn{ transition: none !important; }
+    }
+
+    /* MOBILE */
+    @media(max-width:520px){
+      .hero-inner{ flex-direction:column; align-items:flex-start; gap:10px; }
+      .btn, .icon-btn{ padding:10px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Icons -->
+  <svg width="0" height="0" style="position:absolute;visibility:hidden">
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8zM12 4V1h0v3zm5.24.84l1.42-1.42 1.79 1.8-1.41 1.41zM4 12H1v0h3zm19 0h-3v0h3zM6.76 19.16l-1.8 1.79-1.41-1.41 1.79-1.8zM12 23v-3h0v3zm7.24-3.84l1.42 1.42 1.79-1.8-1.41-1.41zM12 7a5 5 0 100 10 5 5 0 000-10z"/></symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM11 4h2v8h3l-4 4-4-4h3z"/></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24" fill="currentColor"><path d="M6 7h12v2H6zM9 3h6v2H9zM7 9h10l-1 12H8z"/></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+    <symbol id="icon-broom" viewBox="0 0 24 24" fill="currentColor"><path d="M15 3l6 6-2 2-2-2-9 9H5v-3l9-9-2-2 2-2z"/></symbol>
+  </svg>
+
+  <div class="app">
+    <!-- HERO HEADER CARD -->
+    <section class="hero-card">
+      <div class="hero-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"><svg class="icon"><use href="#icon-sun"/></svg></div>
+          <div class="titles">
+            <h1>Manual Transactions Manager for Cyber Zone</h1>
+            <p>owner : <strong>Bikash Ruidas</strong></p>
+          </div>
+        </div>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
+          <svg class="icon" id="themeIcon"><use href="#icon-moon"/></svg>
+          Theme
+        </button>
+      </div>
+    </section>
+
+    <!-- MAIN GRID -->
+    <main class="grid">
+      <!-- Add Transaction (wider) -->
+      <section class="card">
+        <h3>➕ Add Transaction</h3>
+        <form id="manualForm" novalidate>
+          <div class="form-row">
+            <div>
+              <label for="date">Date</label>
+              <input id="date" type="date" required />
+              <div class="help">Required</div>
+            </div>
+            <div>
+              <label for="name">Name</label>
+              <input id="name" type="text" placeholder="e.g., Sarthak Garai" required />
+              <div class="help">Required</div>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:10px;">
+            <div>
+              <label for="type">Transaction Type</label>
+              <select id="type" required>
+                <option value="">Select</option>
+                <option>Deposit</option>
+                <option>Withdrawal</option>
+                <option>ATM</option>
+              </select>
+              <div class="help">Required</div>
+            </div>
+            <div>
+              <label for="amount">Amount</label>
+              <input id="amount" type="number" step="0.01" min="0.01" placeholder="e.g., 47197.00" required />
+              <div class="help">Required</div>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:10px;">
+            <div>
+              <label for="aadhar">Aadhar Number (optional)</label>
+              <input id="aadhar" type="text" placeholder="1234 5678 1234" />
+              <div class="help">Format: 1234 5678 1234</div>
+              <div class="error" id="aadharErr">Invalid Aadhar number. Expected format: 1234 5678 1234</div>
+            </div>
+            <div>
+              <label for="phone">Phone Number (optional)</label>
+              <input id="phone" type="text" placeholder="9876543210" />
+              <div class="help">Format: 10 digits (e.g., 9876543210)</div>
+              <div class="error" id="phoneErr">Invalid phone number. Enter exactly 10 digits.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label for="receipt">Transaction Receipt (PDF/DOCX)</label>
+            <div class="file">
+              <input id="receipt" type="file" accept=".pdf,.doc,.docx" />
+              <div class="help">Optional · up to 15MB</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="addBtn" type="submit"><svg class="icon"><use href="#icon-plus"/></svg> Add</button>
+            <button class="btn ghost" id="refreshBtn" type="button"><svg class="icon"><use href="#icon-refresh"/></svg> Refresh</button>
+            <span id="msg" class="help" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- Download / Filter (narrower) -->
+      <section class="card">
+        <h3>📥 Download / Filter</h3>
+
+        <div class="filters">
+          <div>
+            <label for="rangeSelect">Range</label>
+            <select id="rangeSelect">
+              <option value="custom">Custom</option>
+              <option value="1w">1 Week</option>
+              <option value="1m">1 Month</option>
+              <option value="3m">3 Months</option>
+              <option value="6m">6 Months</option>
+            </select>
+          </div>
+
+          <!-- Show only for Custom -->
+          <div class="inline hidden" id="dateRangeWrap">
+            <div style="flex:1">
+              <label for="fromDate">From</label>
+              <input type="date" id="fromDate" />
+            </div>
+            <div style="flex:1">
+              <label for="toDate">To</label>
+              <input type="date" id="toDate" />
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn secondary" id="viewBtn" type="button"><svg class="icon"><use href="#icon-eye"/></svg> View</button>
+            <button class="btn secondary" id="downloadBtn" type="button"><svg class="icon"><use href="#icon-download"/></svg> Download Excel</button>
+            <button class="btn warn" id="clearBtn" type="button"><svg class="icon"><use href="#icon-broom"/></svg> Clear All</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Transactions Table -->
+    <section class="table-wrap" style="margin-top:14px;">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Name</th><th>Type</th><th>Amount</th><th>Aadhar</th><th>Phone</th><th>Receipt</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="9" style="text-align:center; color:var(--muted); padding:28px;">No data yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="modal">
+      <h4 id="editTitle">Edit Transaction</h4>
+      <form id="editForm" novalidate>
+        <input type="hidden" id="editId" />
+        <div class="form-row">
+          <div><label for="editDate">Date</label><input id="editDate" type="date" required /></div>
+          <div><label for="editName">Name</label><input id="editName" type="text" required /></div>
+        </div>
+        <div class="form-row" style="margin-top:10px;">
+          <div><label for="editType">Transaction Type</label>
+            <select id="editType" required>
+              <option>Deposit</option><option>Withdrawal</option><option>ATM</option>
+            </select>
+          </div>
+          <div><label for="editAmount">Amount</label><input id="editAmount" type="number" step="0.01" min="0.01" required /></div>
+        </div>
+        <div class="form-row" style="margin-top:10px;">
+          <div><label for="editAadhar">Aadhar Number (optional)</label>
+            <input id="editAadhar" type="text" placeholder="1234 5678 1234" />
+            <div class="help">Format: 1234 5678 1234</div><div class="error" id="editAadharErr">Invalid Aadhar number. Expected format: 1234 5678 1234</div>
+          </div>
+          <div><label for="editPhone">Phone Number (optional)</label>
+            <input id="editPhone" type="text" placeholder="9876543210" />
+            <div class="help">Format: 10 digits</div><div class="error" id="editPhoneErr">Invalid phone number. Enter exactly 10 digits.</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label for="editReceipt">Replace Receipt (PDF/DOCX)</label>
+          <div class="file">
+            <input id="editReceipt" type="file" accept=".pdf,.doc,.docx" />
+            <div class="help">Leave empty to keep current. <span id="editReceiptLinkWrap"></span></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="icon-btn" id="editCancel"><svg class="icon"><use href="#icon-refresh"/></svg> Cancel</button>
+          <button type="submit" class="btn"><svg class="icon"><use href="#icon-download"/></svg> Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <span>© <span id="year"></span> code access:</span>
+    <strong>@sarthakgarai</strong>
+  </footer>
+
+  <script>
+    // Theme
+    const htmlEl = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function applyTheme(t){ htmlEl.setAttribute('data-theme', t); localStorage.setItem('theme', t);
+      themeIcon.firstElementChild?.setAttribute('href', t === 'light' ? '#icon-moon' : '#icon-sun'); }
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    themeToggle.addEventListener('click', ()=> applyTheme(htmlEl.getAttribute('data-theme')==='light'?'dark':'light'));
+
+    // Elements
+    const form = document.getElementById('manualForm');
+    const msg = document.getElementById('msg');
+    const tbody = document.getElementById('tbody');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const viewBtn = document.getElementById('viewBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const rangeSelect = document.getElementById('rangeSelect');
+    const dateRangeWrap = document.getElementById('dateRangeWrap');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+
+    function toggleDateInputs(){ if (rangeSelect.value === 'custom') dateRangeWrap.classList.remove('hidden'); else dateRangeWrap.classList.add('hidden'); }
+    rangeSelect.addEventListener('change', toggleDateInputs); toggleDateInputs();
+
+    // Validation
+    const AADHAR_RE = /^\d{4}\s\d{4}\s\d{4}$/;
+    const PHONE_RE  = /^\d{10}$/;
+
+    function setMsg(text, ok=true){ msg.textContent=text; msg.style.color=ok?'var(--success)':'var(--error)'; if(text) setTimeout(()=>msg.textContent='',4000); }
+    function ymdToDMY(ymd){ if(!ymd) return ''; const [y,m,d]=ymd.split('-'); return `${d}/${m}/${y}`; }
+    function dmyToYMD(dmy){ if(!dmy) return ''; const [d,m,y]=dmy.split('/'); return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+
+    function render(rows){
+      tbody.innerHTML='';
+      if(!rows.length){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:28px;">No data yet</td></tr>'; return; }
+      rows.forEach((t,i)=>{
+        const tp=(t.transactionType||'').toLowerCase();
+        const pillCls=tp==='deposit'?'deposit':tp==='withdrawal'?'withdrawal':'atm';
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${i+1}</td>
+          <td>${t.date}</td>
+          <td>${t.name}</td>
+          <td><span class="pill ${pillCls}">${t.transactionType}</span></td>
+          <td>₹${Number(t.amount).toFixed(2)}</td>
+          <td>${t.aadharNumber||'N/A'}</td>
+          <td>${t.phone||'N/A'}</td>
+          <td>${t.receiptUrl? `<a href="${t.receiptUrl}" target="_blank">Open</a>`:''}</td>
+          <td>
+            <div class="tbl-actions">
+              <button class="icon-btn small" data-action="edit" data-id="${t.id}" title="Edit"><svg class="icon"><use href="#icon-edit"/></svg></button>
+              <button class="icon-btn small" data-action="delete" data-id="${t.id}" title="Delete"><svg class="icon"><use href="#icon-trash"/></svg></button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    async function loadAll(){ const r=await fetch('/api/transactions'); const data=await r.json(); render(data.transactions||[]); }
+
+    // Live validations
+    const aadharInput=document.getElementById('aadhar'), aadharErr=document.getElementById('aadharErr');
+    aadharInput.addEventListener('input', e=>{
+      let v=e.target.value.replace(/\s/g,'').replace(/\D/g,''); if(v.length>12) v=v.slice(0,12);
+      if(v.length>8) v=v.slice(0,4)+' '+v.slice(4,8)+' '+v.slice(8); else if(v.length>4) v=v.slice(0,4)+' '+v.slice(4);
+      e.target.value=v; if(!v) aadharErr.classList.remove('show'); else AADHAR_RE.test(v)?aadharErr.classList.remove('show'):aadharErr.classList.add('show');
+    });
+    const phoneInput=document.getElementById('phone'), phoneErr=document.getElementById('phoneErr');
+    phoneInput.addEventListener('input', e=>{
+      let v=e.target.value.replace(/\D/g,''); if(v.length>10) v=v.slice(0,10);
+      e.target.value=v; if(!v) phoneErr.classList.remove('show'); else PHONE_RE.test(v)?phoneErr.classList.remove('show'):phoneErr.classList.add('show');
+    });
+
+    // Submit
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const dateYMD=document.getElementById('date').value;
+      const name=document.getElementById('name').value.trim();
+      const type=document.getElementById('type').value.trim();
+      const amount=document.getElementById('amount').value;
+      const aadhar=aadharInput.value.trim();
+      const phone=phoneInput.value.trim();
+      const receipt=document.getElementById('receipt').files[0];
+
+      if(!dateYMD||!name||!type||!amount){ setMsg('Please fill all required fields', false); return; }
+      if(aadhar && !AADHAR_RE.test(aadhar)){ setMsg('Invalid Aadhar number', false); return; }
+      if(phone && !PHONE_RE.test(phone)){ setMsg('Invalid phone number', false); return; }
+
+      const fd=new FormData();
+      fd.append('date', ymdToDMY(dateYMD));
+      fd.append('name', name);
+      fd.append('transactionType', type);
+      fd.append('amount', amount);
+      if(aadhar) fd.append('aadharNumber', aadhar);
+      if(phone) fd.append('phone', phone);
+      if(receipt) fd.append('receipt', receipt);
+
+      try{
+        const r=await fetch('/api/manual-entry',{method:'POST', body:fd});
+        const data=await r.json(); if(!r.ok) throw new Error(data.error||'Failed to add');
+        setMsg('Transaction added ✅', true); form.reset(); await loadAll();
+      }catch(err){ setMsg(err.message,false); }
+    });
+
+    // Filters
+    function ymdToDMY2(ymd){ if(!ymd) return ''; const [y,m,d]=ymd.split('-'); return `${d}/${m}/${y}`; }
+    function getQuery(){
+      const range=rangeSelect.value; const q=new URLSearchParams(); q.set('range', range);
+      if(range==='custom'){ if(fromDate.value) q.set('from', ymdToDMY2(fromDate.value)); if(toDate.value) q.set('to', ymdToDMY2(toDate.value)); }
+      return q;
+    }
+    viewBtn.addEventListener('click', async ()=>{
+      const r=await fetch('/api/transactions?'+getQuery().toString());
+      const data=await r.json(); render(data.transactions||[]);
+    });
+    downloadBtn.addEventListener('click', async ()=>{
+      try{
+        const r=await fetch('/api/download-excel?'+getQuery().toString());
+        if(!r.ok){ const j=await r.json(); throw new Error(j.error||'Failed to download'); }
+        const blob=await r.blob(); const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download='transactions.xlsx'; a.click(); URL.revokeObjectURL(url);
+      }catch(err){ setMsg(err.message,false); }
+    });
+    clearBtn.addEventListener('click', async ()=>{
+      if(!confirm('Clear all transactions?')) return;
+      await fetch('/api/clear',{method:'POST'}); setMsg('Cleared ✅', true); render([]);
+    });
+    refreshBtn.addEventListener('click', loadAll);
+
+    // Table actions
+    tbody.addEventListener('click', e=>{
+      const btn=e.target.closest('button[data-action]'); if(!btn) return;
+      const id=btn.getAttribute('data-id'); const action=btn.getAttribute('data-action');
+      if(action==='edit') openEditModal(id);
+      if(action==='delete') handleDelete(id);
+    });
+
+    async function handleDelete(id){
+      if(!confirm('Delete this transaction?')) return;
+      try{
+        const r=await fetch('/api/transactions/'+encodeURIComponent(id), { method:'DELETE' });
+        const d=await r.json();
+        if(!r.ok) throw new Error(d.error||'Delete failed');
+        setMsg('Deleted ✅', true); await loadAll();
+      }catch(err){ setMsg(err.message,false); }
+    }
+
+    // Edit modal
+    const editModal=document.getElementById('editModal');
+    const editForm=document.getElementById('editForm');
+    const editId=document.getElementById('editId');
+    const editDate=document.getElementById('editDate');
+    const editName=document.getElementById('editName');
+    const editType=document.getElementById('editType');
+    const editAmount=document.getElementById('editAmount');
+    const editAadhar=document.getElementById('editAadhar');
+    const editAadharErr=document.getElementById('editAadharErr');
+    const editPhone=document.getElementById('editPhone');
+    const editPhoneErr=document.getElementById('editPhoneErr');
+    const editReceipt=document.getElementById('editReceipt');
+    const editReceiptLinkWrap=document.getElementById('editReceiptLinkWrap');
+    const editCancel=document.getElementById('editCancel');
+
+    function showModal(){ editModal.style.display='flex'; }
+    function hideModal(){ editModal.style.display='none'; editForm.reset(); editAadharErr.classList.remove('show'); editPhoneErr.classList.remove('show'); }
+
+    async function openEditModal(id){
+      const r=await fetch('/api/transactions'); const data=await r.json();
+      const tx=(data.transactions||[]).find(t=>t.id===id); if(!tx){ setMsg('Transaction not found',false); return; }
+      editId.value=tx.id; editDate.value=dmyToYMD(tx.date); editName.value=tx.name; editType.value=tx.transactionType; editAmount.value=Number(tx.amount).toFixed(2);
+      editAadhar.value=tx.aadharNumber&&tx.aadharNumber!=='N/A'?tx.aadharNumber:''; editPhone.value=tx.phone&&tx.phone!=='N/A'?tx.phone:'';
+      editReceipt.value=''; editReceiptLinkWrap.innerHTML=tx.receiptUrl?`Current: <a href="${tx.receiptUrl}" target="_blank">Open</a>`:'No receipt uploaded';
+      showModal();
+    }
+    editAadhar.addEventListener('input', e=>{
+      let v=e.target.value.replace(/\s/g,'').replace(/\D/g,''); if(v.length>12) v=v.slice(0,12);
+      if(v.length>8) v=v.slice(0,4)+' '+v.slice(4,8)+' '+v.slice(8); else if(v.length>4) v=v.slice(0,4)+' '+v.slice(4);
+      e.target.value=v; if(v && !AADHAR_RE.test(v)) editAadharErr.classList.add('show'); else editAadharErr.classList.remove('show');
+    });
+    editPhone.addEventListener('input', e=>{
+      let v=e.target.value.replace(/\D/g,''); if(v.length>10) v=v.slice(0,10);
+      e.target.value=v; if(v && !PHONE_RE.test(v)) editPhoneErr.classList.add('show'); else editPhoneErr.classList.remove('show');
+    });
+    editCancel.addEventListener('click', hideModal);
+    editModal.addEventListener('click', e=>{ if(e.target===editModal) hideModal(); });
+
+    editForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id=editId.value, ymd=editDate.value, name=editName.value.trim(), type=editType.value.trim(), amount=editAmount.value;
+      const aadhar=editAadhar.value.trim(), phone=editPhone.value.trim(), receipt=editReceipt.files[0];
+      if(!ymd||!name||!type||!amount) return alert('Please fill all required fields');
+      if(aadhar && !AADHAR_RE.test(aadhar)) return;
+      if(phone && !PHONE_RE.test(phone)) return;
+
+      const fd=new FormData();
+      fd.append('date', ymdToDMY(ymd)); fd.append('name', name); fd.append('transactionType', type); fd.append('amount', amount);
+      if(aadhar) fd.append('aadharNumber', aadhar); if(phone) fd.append('phone', phone); if(receipt) fd.append('receipt', receipt);
+
+      try{
+        const r=await fetch('/api/transactions/'+encodeURIComponent(id),{method:'PUT', body:fd});
+        const d=await r.json(); if(!r.ok) throw new Error(d.error||'Update failed');
+        setMsg('Updated ✅', true); hideModal(); await loadAll();
+      }catch(err){ alert(err.message); }
+    });
+
+    loadAll();
+  </script>
+</body>
+</html>
